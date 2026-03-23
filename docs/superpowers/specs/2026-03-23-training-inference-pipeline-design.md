@@ -308,6 +308,48 @@ label_studio:
   # project_id: null
 ```
 
+## Observability — OpenTelemetry
+
+Both inference and training pipelines are instrumented with OpenTelemetry for distributed tracing and metrics.
+
+### Inference Instrumentation
+
+- **Traces:** Each `/predict` call creates a root span with child spans for each pipeline stage:
+  - `regime_classify` — regime label, confidence
+  - `calibrate` — voltage, NTU, calibration method
+  - `biofouling_assess` — correction factor, cleaning alert
+- **Metrics:**
+  - `cleareye.inference.latency` (histogram) — total prediction latency
+  - `cleareye.inference.regime` (counter) — predictions per regime
+  - `cleareye.inference.ntu` (histogram) — NTU distribution
+- FastAPI auto-instrumentation via `opentelemetry-instrumentation-fastapi`
+
+### Training Instrumentation
+
+- **Traces:** Each pipeline run creates a root span with child spans per stage:
+  - `ingest`, `clean`, `feature_engineer`, `split`, `scale`, `train`, `evaluate`, `save`
+  - Each span records stage duration and key attributes (row count, feature count, etc.)
+- **Metrics:**
+  - `cleareye.training.stage_duration` (histogram) — per-stage duration
+  - `cleareye.training.model_accuracy` (gauge) — post-training accuracy
+  - `cleareye.training.data_rows` (gauge) — rows after cleaning
+
+### Configuration
+
+OpenTelemetry is configured via environment variables (standard OTEL SDK approach):
+- `OTEL_SERVICE_NAME=cleareye`
+- `OTEL_EXPORTER_OTLP_ENDPOINT` — collector endpoint (default: none, traces go to console if unset)
+- `OTEL_TRACES_EXPORTER` — `otlp`, `console`, or `none`
+
+No code changes needed to switch exporters. Console exporter used in dev, OTLP in production.
+
+### Implementation
+
+- `app/telemetry.py` — initializes tracer and meter providers, exports `tracer` and `meter` singletons
+- Inference spans added in `InferenceEngine.predict`
+- Training spans added in `PipelineOrchestrator.run`
+- Dependency: `opentelemetry-api`, `opentelemetry-sdk`, `opentelemetry-instrumentation-fastapi`
+
 ## Decisions
 
 - **FSM stage pipeline** over monolithic script or DAG — right balance of structure and simplicity
