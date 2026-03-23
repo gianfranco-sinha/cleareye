@@ -1,0 +1,20 @@
+# ISO 7027 turbidity measurement standard
+# Nephelometric method using formazin reference
+
+name: iso7027
+description: ISO 7027 nephelometric turbidity (formazin reference)
+scale: [0, 4000]
+unit: FNU
+categories:
+  - name: Clear
+    range: [0, 5]
+    description: Drinking water quality
+  - name: Slight
+    range: [5, 50]
+    description: Slight turbidity, visible to eye
+  - name: Moderate
+    range: [50, 500]
+    description: Moderate turbidity
+  - name: High
+    range: [500, 4000]
+    description: Heavily turbid

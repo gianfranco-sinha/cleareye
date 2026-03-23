@@ -1,0 +1,68 @@
+# Physical quantity registry for water quality monitoring.
+# Each quantity defines its canonical unit, valid range, and optional alternate units.
+
+turbidity:
+  canonical_unit: NTU
+  description: Turbidity — optical scattering measure of suspended particles
+  valid_range: [0, 4000]
+  kind: optical
+  aliases: [turb, ntu]
+
+conductivity:
+  canonical_unit: µS/cm
+  description: Electrical conductivity of water
+  valid_range: [0, 5000]
+  kind: electrical
+  aliases: [ec, cond]
+  alternate_units:
+    mS/cm:
+      convert: "{value} * 1000"
+
+tds:
+  canonical_unit: ppm
+  description: Total dissolved solids
+  valid_range: [0, 1000]
+  kind: chemical
+  aliases: [total_dissolved_solids]
+
+water_temperature:
+  canonical_unit: °C
+  description: Water temperature
+  valid_range: [0, 40]
+  kind: thermal
+  aliases: [temp, water_temp]
+  alternate_units:
+    °F:
+      convert: "({value} - 32) * 5 / 9"
+    K:
+      convert: "{value} - 273.15"
+
+depth:
+  canonical_unit: m
+  description: Water depth at sensor
+  valid_range: [0, 20]
+  kind: physical
+  aliases: [water_depth]
+
+flow_rate:
+  canonical_unit: m/s
+  description: Water flow velocity
+  valid_range: [0, 10]
+  kind: physical
+  aliases: [flow, velocity]
+
+ph:
+  canonical_unit: pH
+  description: Acidity/alkalinity
+  valid_range: [0, 14]
+  kind: chemical
+
+dissolved_oxygen:
+  canonical_unit: mg/L
+  description: Dissolved oxygen concentration
+  valid_range: [0, 20]
+  kind: chemical
+  aliases: [do, do2]
+  alternate_units:
+    "%sat":
+      convert: "{value} * 0.01 * 14.6"

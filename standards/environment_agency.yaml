@@ -1,0 +1,23 @@
+# UK Environment Agency river water quality classification
+# Based on turbidity thresholds for ecological status
+
+name: environment_agency
+description: UK Environment Agency river classification
+scale: [0, 4000]
+unit: NTU
+categories:
+  - name: High
+    range: [0, 10]
+    description: Near-natural conditions
+  - name: Good
+    range: [10, 25]
+    description: Slight enrichment, minor disturbance
+  - name: Moderate
+    range: [25, 100]
+    description: Moderate disturbance, some impact
+  - name: Poor
+    range: [100, 300]
+    description: Significant disturbance
+  - name: Bad
+    range: [300, 4000]
+    description: Severe disturbance, heavily impacted

@@ -1,0 +1,37 @@
+# ClearEye model configuration
+# Source of truth for model architecture and training hyperparameters.
+
+server:
+  host: "0.0.0.0"
+  port: 8000
+
+sensor:
+  v_ref: 5.0            # ADC reference voltage (V)
+  adc_resolution: 1024  # 10-bit ADC
+
+regime_classifier:
+  type: rule_based       # rule_based | ml
+  # ML classifier config (milestone 2+):
+  # model_path: models/regime_classifier.pt
+  # input_features: [turbidity_adc, tds, water_temperature]
+
+calibration:
+  method: datasheet      # datasheet | ml_residual
+  # ML residual config (milestone 2+):
+  # model_dir: models/calibration/
+  # features: [turbidity_adc, voltage, water_temperature, tds, d_adc_dt, hour_sin, hour_cos]
+
+biofouling:
+  enabled: false         # Milestone 3
+  # window_days: 7
+  # alert_threshold: 0.15
+
+training:
+  batch_size: 64
+  learning_rate: 0.001
+  epochs: 100
+  early_stopping_patience: 10
+  train_split: 0.7
+  val_split: 0.15
+  test_split: 0.15
+  device: auto           # auto | cpu | cuda | mps
