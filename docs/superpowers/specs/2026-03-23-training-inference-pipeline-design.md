@@ -1,4 +1,4 @@
-# Training & Inference Pipeline Design
+D# Training & Inference Pipeline Design
 
 **Date:** 2026-03-23
 **Status:** Approved
@@ -28,6 +28,8 @@ Stages execute sequentially. Stateless — failures restart from scratch (pipeli
 ingest → clean → feature_engineer → split → scale → train → evaluate → save
 ```
 
+Note: The design doc and existing `PipelineStage` enum include a `window` stage between `feature_engineer` and `split`. Windowing (e.g., rolling statistics, `d_adc_dt` computation) is folded into `feature_engineer` for simplicity — there is no separate windowing pass. The `PipelineStage` enum will be updated to match.
+
 **Trigger:** CLI only — `python -m cleareye train --config model_config.yaml`.
 
 ### PipelineContext
@@ -52,14 +54,23 @@ Dataclass carrying state between stages:
 - `CSVDataSource`: drops repeated header rows, coerces types, parses timestamps
 - `SyntheticDataSource`: generates plausible readings across all three regimes (for testing)
 - `LabelStudioSource`: stub — raises `NotImplementedError`
+- InfluxDB data source deferred to milestone 4
 
 ### Clean Stage
 
 - Drop rows with NaN in required columns (`turbidity_adc`, `tds`, `water_temperature`)
-- Validate ranges against `quantities.yaml`
+- Validate ranges against `quantities.yaml` (calibrated-unit ranges)
+- Validate raw values against `SensorProfile.valid_range` per sensor (e.g., DS18B20 -55°C to 125°C, SEN0189 ADC 0–1023). Readings outside the sensor's operating envelope are flagged as suspect and dropped — catches hardware faults (e.g., DS18B20 returning 85°C = wiring error)
 - Sort by timestamp
 - Deduplicate exact-timestamp rows
 - Drop rows where `turbidity_adc` is non-numeric (header row contamination)
+- Minimum data guard: abort with `InsufficientDataError` if fewer than 30 samples per regime after cleaning
+
+**Staleness checks:**
+
+- **Timestamp gap detection** — identify gaps between consecutive readings exceeding a configurable threshold (default: 5× expected sampling interval, e.g., >30s for a 6s interval). Gaps are logged with start/end timestamps and duration. The dataset is split into contiguous segments at gap boundaries; each segment is tagged so downstream stages (e.g., `d_adc_dt` computation) don't compute derivatives across gaps.
+- **Sequence number gap detection** — if an optional `seq` field is present in the data, detect missing sequence numbers independently of timestamps. This catches dropped readings even when the clock is unreliable or absent. Missing sequence ranges are logged.
+- **Data age warning** — if the most recent reading in the dataset is older than a configurable threshold (default: 90 days), log a warning that training data may not reflect current conditions (seasonal drift, sensor degradation, site changes). Training proceeds but the warning is recorded in `metadata.json`.
 
 ### Feature Engineering Stage
 
@@ -81,6 +92,10 @@ Dataclass carrying state between stages:
 | `d_adc_dt` | Rate of change of ADC between consecutive readings |
 | `hour_sin` | `sin(2π * hour / 24)` — cyclical encoding |
 | `hour_cos` | `cos(2π * hour / 24)` — cyclical encoding |
+| `ph` | Optional — pH sensor (future) |
+| `dissolved_oxygen` | Optional — DO sensor (future) |
+
+Optional fields (`ph`, `dissolved_oxygen`, `depth`, `flow_rate`) are excluded from feature vectors when `None`. Models trained with these features will only be usable on rigs that provide them. The `Reading` model carries all optional fields as nullable; feature engineering selects only those present in the configured feature list AND non-null in the data.
 
 **Label generation** depends on `label_source` config:
 
@@ -201,15 +216,22 @@ Config says rule_based/datasheet? → Use current implementations directly
 
 ### New Components
 
-**`MLRegimeClassifier`** — wraps `RegimeClassifierNet` + scaler. Implements same `classify()` interface as `RuleBasedRegimeClassifier`. Returns `RegimeResult` with softmax confidence.
+**`MLRegimeClassifier`** — wraps `RegimeClassifierNet` + scaler. Implements the `RegimeClassifier` protocol (same `classify()` interface). Returns `RegimeResult` with softmax confidence. `InferenceEngine` accepts `RegimeClassifier` protocol, not the concrete `RuleBasedRegimeClassifier`.
 
-**`MLResidualCalibrator`** — wraps `ResidualCorrectionNet` + scaler. Implements `Calibrator.calibrate()`. Applies datasheet transfer function first, then adds ML residual correction.
+**`MLResidualCalibrator`** — wraps `ResidualCorrectionNet` + scaler. Implements `Calibrator` ABC (including `method` property returning `"ml_residual"`). Applies datasheet transfer function first, then adds ML residual correction. `calibration_method` in `CalibratedReading` is set dynamically from the active calibrator's `method` property.
 
 **`AnomalyDetectorEngine`** — wraps autoencoder. Computes reconstruction error, flags anomalies above threshold. Integrates with `BiofoulingMonitor`.
 
 ### No External API Changes
 
 The `/predict` endpoint, `Reading`/`CalibratedReading` data models, and all FastAPI routes remain unchanged. Only the internal engine components swap out.
+
+### Implementation Notes
+
+- The existing `PipelineOrchestrator` stub (with `self.context: dict`) will be replaced by the `PipelineContext` dataclass and rewritten stage functions — not extended.
+- `model_config.yaml` is restructured: the current flat `regime_classifier`/`calibration`/`biofouling` keys are replaced with a `models:` block containing per-model entries. `app/config.py` `Settings` must be updated to parse the new structure.
+- `SyntheticDataSource` generates data with boundaries matching rule-based thresholds — it is for pipeline testing only, not meaningful ML evaluation. Real training uses the 50K field readings.
+- Scaler artifacts are saved as JSON (mean/std arrays) rather than pickle, for safety and reproducibility.
 
 ## Configuration
 
