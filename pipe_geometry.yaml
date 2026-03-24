@@ -1,0 +1,22 @@
+pipe:
+  length_mm: 300
+  inner_radius_mm: 25
+  mesh_opening_mm: 0.5
+
+sensors:
+  - name: upstream
+    position_mm: 50
+  - name: downstream
+    position_mm: 250
+
+flow:
+  regime: laminar
+  velocity_range:
+    min_m_s: 0.001
+    max_m_s: 0.5
+
+perturbation_zones: []
+
+regime_thresholds:
+  suspension_pe: 1000
+  solution_pe: 10
