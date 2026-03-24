@@ -45,14 +45,26 @@ class TestEffectiveDiffusion:
         taylor_term = (0.025**2 * 0.5**2) / (48 * 1e-9)
         assert d_eff == pytest.approx(1e-9 + taylor_term)
 
-    def test_with_temperature(self):
+    def test_with_temperature_no_flow(self):
+        # At v=0, no Taylor term — D_eff = D_corrected, so warm > cold
+        d_cold = effective_diffusion(
+            d_molecular=1e-9, velocity=0.0, pipe_radius=0.025, temperature=5.0
+        )
+        d_warm = effective_diffusion(
+            d_molecular=1e-9, velocity=0.0, pipe_radius=0.025, temperature=30.0
+        )
+        assert d_warm > d_cold
+
+    def test_taylor_inverts_temperature_at_high_velocity(self):
+        # At practical velocities, Taylor term R²v²/(48·D) dominates.
+        # Lower D_corrected (cold) → larger Taylor term → larger D_eff.
         d_cold = effective_diffusion(
             d_molecular=1e-9, velocity=0.1, pipe_radius=0.025, temperature=5.0
         )
         d_warm = effective_diffusion(
             d_molecular=1e-9, velocity=0.1, pipe_radius=0.025, temperature=30.0
         )
-        assert d_warm > d_cold
+        assert d_cold > d_warm
 
     def test_perturbation_zone_multiplier(self):
         d_base = effective_diffusion(
