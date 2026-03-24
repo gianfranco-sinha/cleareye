@@ -66,6 +66,16 @@ class TestEffectiveDiffusion:
         )
         assert d_cold > d_warm
 
+    def test_negative_velocity_same_dispersion(self):
+        # Taylor dispersion depends on v², so reverse flow gives same D_eff
+        d_forward = effective_diffusion(
+            d_molecular=1e-9, velocity=0.1, pipe_radius=0.025
+        )
+        d_reverse = effective_diffusion(
+            d_molecular=1e-9, velocity=-0.1, pipe_radius=0.025
+        )
+        assert d_reverse == pytest.approx(d_forward)
+
     def test_perturbation_zone_multiplier(self):
         d_base = effective_diffusion(
             d_molecular=1e-9, velocity=0.1, pipe_radius=0.025
