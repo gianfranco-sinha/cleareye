@@ -12,7 +12,7 @@ sensors:
 flow:
   regime: laminar
   velocity_range:
-    min_m_s: 0.001
+    min_m_s: -0.5
     max_m_s: 0.5
 
 perturbation_zones: []

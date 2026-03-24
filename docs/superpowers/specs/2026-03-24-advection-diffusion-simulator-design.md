@@ -12,7 +12,7 @@ A 1D advection-diffusion solver for the ClearEye dual-sensor pipe geometry. Solv
 
 Where:
 - C(x, t) — concentration field
-- v — mean flow velocity (m/s)
+- v — mean flow velocity (m/s), signed: +ve = inlet→outlet, -ve = reverse
 - D_eff — effective dispersion coefficient (m²/s), includes Taylor dispersion
 
 ### Taylor Dispersion
@@ -70,7 +70,7 @@ sensors:
 flow:
   regime: laminar
   velocity_range:
-    min_m_s: 0.001
+    min_m_s: -0.5
     max_m_s: 0.5
 
 perturbation_zones: []
@@ -142,7 +142,7 @@ Solved via `scipy.linalg.solve_banded` (vectorised tridiagonal solve) — O(N) p
 Crank-Nicolson is unconditionally stable, but accuracy requires the Courant number `r_a` to be O(1). Guidance:
 
 ```
-dt = dx / v   (when v > 0)
+dt = dx / |v|   (when v ≠ 0)
 ```
 
 At v=0.5 m/s, dx=5mm: dt=0.01s. For a 60s simulation: 6000 timesteps. The solver computes `dt` automatically from `dx` and `v` unless the caller overrides it.
@@ -181,7 +181,7 @@ C(x, t=0) — configurable:
 | Parameter | Range | Distribution | Physical meaning |
 |-----------|-------|--------------|-----------------|
 | D_molecular | 1e-12 to 1e-5 m²/s | Log-uniform | 1e-12 = large sand, 1e-5 = dissolved ions |
-| velocity | 0.001 to 0.5 m/s | Log-uniform | Laminar pipe flow range |
+| velocity | -0.5 to 0.5 m/s | Signed, log-uniform magnitude | Laminar pipe flow, sign = direction (+ve: inlet→outlet, -ve: reverse) |
 | C₀ | 1 to 5000 (arb. units) | Log-uniform | Turbidity event magnitude |
 | temperature | 1 to 35 deg C | Uniform | Affects D via Stokes-Einstein |
 | pipe_radius | From YAML | Fixed | For Taylor dispersion calculation |

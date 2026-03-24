@@ -23,7 +23,7 @@ class TestPipeGeometry:
 
     def test_velocity_range(self):
         geo = load_geometry()
-        assert geo.velocity_min == pytest.approx(0.001)
+        assert geo.velocity_min == pytest.approx(-0.5)
         assert geo.velocity_max == pytest.approx(0.5)
 
     def test_regime_thresholds(self):
