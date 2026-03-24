@@ -72,7 +72,10 @@ class Arbitrary:
         self.c_data = c_data
 
     def __call__(self, t: float | np.ndarray) -> float | np.ndarray:
-        return np.interp(t, self.t_data, self.c_data)
+        return np.interp(
+            t, self.t_data, self.c_data,
+            left=self.c_data[0], right=self.c_data[-1],
+        )
 
 
 @dataclass

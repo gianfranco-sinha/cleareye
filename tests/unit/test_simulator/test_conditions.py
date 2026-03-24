@@ -57,6 +57,12 @@ class TestRamp:
         bc = Ramp(c0=100.0, t0=0.0, tau=10.0)
         assert bc(5.0) == pytest.approx(50.0)
 
+    def test_nonzero_t0_offset(self):
+        bc = Ramp(c0=100.0, t0=5.0, tau=10.0)
+        assert bc(5.0) == pytest.approx(0.0)    # at t0, ramp just starts
+        assert bc(10.0) == pytest.approx(50.0)   # halfway through ramp
+        assert bc(15.0) == pytest.approx(100.0)  # end of ramp
+
 
 class TestArbitrary:
     def test_interpolation(self):
