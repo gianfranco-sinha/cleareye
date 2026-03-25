@@ -12,6 +12,22 @@ ClearEye provides regime-aware turbidity calibration for low-cost sensors deploy
 2. **Calibration** — applies regime-specific transfer functions (datasheet baseline + ML residual correction)
 3. **Biofouling Monitor** — detects sensor drift from biofilm accumulation, applies correction factors, alerts when cleaning is needed
 
+## Simulator
+
+ClearEye includes a 1D advection-diffusion simulator for modelling turbidity transport in pipe geometries. It serves as the physics engine behind synthetic training data and feature extraction.
+
+- **Forward solver** — Crank-Nicolson semi-implicit finite differences with upwind advection, supporting bidirectional flow (signed velocity)
+- **Taylor dispersion** — computes effective diffusion coefficient D_eff = D_mol + R²v²/(48·D_mol) with Stokes-Einstein temperature correction
+- **Inverse solver** — recovers physical parameters (D_molecular, velocity, concentration) from observed dual-sensor signals via L-BFGS-B optimisation
+- **Synthetic data generation** — samples from physical parameter ranges, runs forward simulations, and extracts transport features for ML training
+- **Boundary conditions** — Pulse, Step, Ramp, and Arbitrary inlet profiles
+
+```bash
+# Generate synthetic training data
+from simulator import generate_synthetic_dataset
+df = generate_synthetic_dataset(n_samples=1000, seed=42)
+```
+
 ## Sensors
 
 - DFRobot SEN0189 (turbidity, analog)
