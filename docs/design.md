@@ -284,7 +284,8 @@ Requires historical deployment data — days/weeks of readings where drift accum
     "calibration_method": "datasheet",
     "biofouling_factor": 1.0,
     "cleaning_alert": false,
-    "confidence": 0.92           // min(regime_classifier_confidence, biofouling_reliability), range 0.0-1.0
+    "confidence": 0.92           
+   // min(regime_classifier_confidence, biofouling_reliability), range 0.0-1.0
 }
 ```
 

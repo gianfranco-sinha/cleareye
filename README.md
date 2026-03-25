@@ -2,7 +2,7 @@
 
 ML platform for water quality prediction — turbidity measurement science for open water bodies.
 
-Built by [Smarts Sensors, Analytics and Instrumentation Ltd](https://www.water-sensors.co.uk).
+Built by [Smarts Sensors,Instrumentation and Analytics Ltd](https://www.water-sensors.co.uk).
 
 ## What it does
 
