@@ -10,6 +10,7 @@ import yaml
 from app.exceptions import ConfigError
 
 _CONFIG_PATH = Path(__file__).resolve().parent.parent / "model_config.yaml"
+_DB_CONFIG_PATH = Path(__file__).resolve().parent.parent / "database_config.yaml"
 
 
 def load_config(path: Path | None = None) -> dict[str, Any]:
@@ -52,6 +53,16 @@ class Settings:
 
     def get(self, key: str, default: Any = None) -> Any:
         return self._raw.get(key, default)
+
+    def get_database_config(self) -> dict[str, Any]:
+        """Load database configuration from database_config.yaml."""
+        if not _DB_CONFIG_PATH.exists():
+            return {"enabled": False}
+        try:
+            raw = yaml.safe_load(_DB_CONFIG_PATH.read_text()) or {}
+            return raw.get("influxdb", {"enabled": False})
+        except Exception:
+            return {"enabled": False}
 
 
 settings = Settings()

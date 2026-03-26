@@ -59,3 +59,12 @@ class InsufficientDataError(TrainingError):
 
 class DataValidationError(TrainingError):
     """Training data failed validation checks."""
+
+
+class InfluxUnreachableError(ClearEyeError):
+    """InfluxDB is not reachable or misconfigured."""
+
+    def __init__(self, message: str, suggestion: str = ""):
+        self.suggestion = suggestion
+        full = f"{message}. {suggestion}" if suggestion else message
+        super().__init__(full)

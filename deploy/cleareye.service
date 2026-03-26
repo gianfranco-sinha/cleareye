@@ -1,0 +1,24 @@
+[Unit]
+Description=ClearEye water quality prediction service
+After=network.target influxdb.service
+Wants=influxdb.service
+
+[Service]
+Type=simple
+User=pi
+Group=pi
+WorkingDirectory=/home/pi/cleareye
+Environment="PATH=/home/pi/cleareye/venv/bin:/usr/local/bin:/usr/bin:/bin"
+Environment="ROOT_PATH=/cleareye"
+ExecStart=/home/pi/cleareye/venv/bin/uvicorn app.main:app \
+    --host 127.0.0.1 \
+    --port 8002 \
+    --workers 2 \
+    --log-level info
+Restart=on-failure
+RestartSec=5
+StandardOutput=journal
+StandardError=journal
+
+[Install]
+WantedBy=multi-user.target

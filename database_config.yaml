@@ -1,0 +1,46 @@
+# ============================================================================
+# Database Configuration File for ClearEye
+# ============================================================================
+# InfluxDB connection parameters for water quality time series data.
+
+influxdb:
+  # InfluxDB version and client type
+  version: "1.x"  # Options: "1.x", "2.x"
+
+  # Connection settings
+  host: "localhost"
+  port: 8086
+  database: "water_quality"
+
+  # Authentication (optional)
+  username: ""
+  password: ""
+
+  # Connection settings
+  timeout: 60
+
+  # Enable/disable database features
+  enabled: false
+
+  # SSL/TLS settings (optional)
+  ssl: false
+  verify_ssl: true
+
+  # InfluxDB 2.x settings (ignored for 1.x)
+  org: ""
+  bucket: ""
+  token: ""
+
+  # Measurements
+  readings_measurement: "turbidity_readings"
+  predictions_measurement: "calibrated_predictions"
+
+# Database Operations
+database:
+  batch_size: 1000
+  max_retries: 3
+  retry_delay: 1  # seconds
+
+  # Data retention
+  retention_policy: "autogen"
+  data_retention_days: 90

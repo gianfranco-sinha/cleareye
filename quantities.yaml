@@ -32,8 +32,6 @@ water_temperature:
   kind: thermal
   aliases: [temp, water_temp]
   alternate_units:
-    °F:
-      convert: "({value} - 32) * 5 / 9"
     K:
       convert: "{value} - 273.15"
 
