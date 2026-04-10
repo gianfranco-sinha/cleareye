@@ -30,7 +30,7 @@ df = generate_synthetic_dataset(n_samples=1000, seed=42)
 
 ## Sensor Drift Study
 
-Analysis of biofouling-induced sensor drift from a 20-day UK river deployment (Oct 2024). Using 50K readings from a DFRobot SEN0189, we isolated a 43-hour high-turbidity plateau under stable environmental conditions and detected a consistent upward drift of **+1.01 ADC/hour** — a signature of biofilm accumulation on the optical window.
+Analysis of biofouling-induced sensor drift from a 20-day UK river deployment (Oct 2024). Using 50K readings from a DFRobot SEN0189, the experiment automatically detects anomalous jumps (+732 ADC regime shift), segments the data around them, and measures drift independently in each stable segment. The 42-hour high-turbidity plateau shows a steady **+1.03 ADC/hour** upward drift under stable environmental conditions — a signature of biofilm accumulation on the optical window.
 
 ![Drift Detection](sensor_drift_study/drift_detection.png)
 
